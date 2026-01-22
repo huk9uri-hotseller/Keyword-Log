@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: klog-postgres
+    environment:
+      POSTGRES_DB: klog
+      POSTGRES_USER: klog
+      POSTGRES_PASSWORD: klog
+      TZ: Asia/Seoul
+      
+    ports:
+      - "5432:5432"   # 로컬에 이미 Postgres가 있으면 "5433:5432"로 바꾸세요.
+    volumes:
+      - klog_pgdata:/var/lib/postgresql/data
+      -  ./db:/db # 스키마 파일 저장
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U klog -d klog"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  klog_pgdata:
