@@ -84,8 +84,11 @@ CREATE TABLE keywords (
   group_id BIGINT NOT NULL REFERENCES keyword_groups(id)
     ON DELETE CASCADE,                              -- 소속 그룹 FK(그룹 삭제 시 키워드도 삭제)
   keyword VARCHAR(200) NOT NULL,                    -- 실제 검색어 문자열
+  keyword_type VARCHAR(20) NOT NULL DEFAULT 'GENERAL', -- 키워드 유형(GENERAL/OWN/COMPETITOR)
   is_active BOOLEAN DEFAULT TRUE,                   -- 활성 여부(논리적 비활성)
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP, -- 생성 시각
+  CONSTRAINT ck_keywords_type
+    CHECK (keyword_type IN ('GENERAL', 'OWN', 'COMPETITOR')),
   UNIQUE (group_id, keyword)                        -- 동일 그룹 내 키워드 중복 방지
 );
 

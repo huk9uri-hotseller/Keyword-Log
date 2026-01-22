@@ -1,7 +1,7 @@
 import enum
 from sqlalchemy import (
     Column, Integer, String, Text, Boolean, Date, DateTime, 
-    ForeignKey, Numeric, Float, JSON, UniqueConstraint, CheckConstraint
+    ForeignKey, Numeric, Float, JSON, UniqueConstraint, CheckConstraint, text
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -88,11 +88,13 @@ class Keyword(Base):
     id = Column(Integer, primary_key=True, index=True)
     group_id = Column(Integer, ForeignKey("keyword_groups.id", ondelete="CASCADE"), nullable=False, index=True)
     keyword = Column(String(200), nullable=False)
+    keyword_type = Column(String(20), nullable=False, server_default=text("'GENERAL'"))
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (
         UniqueConstraint('group_id', 'keyword', name='uq_keyword_group_keyword'),
+        CheckConstraint("keyword_type IN ('GENERAL', 'OWN', 'COMPETITOR')", name='ck_keywords_type'),
     )
 
     # Relationships

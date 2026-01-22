@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Literal
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
@@ -32,6 +32,7 @@ class UserResponse(UserBase):
 
 class KeywordBase(BaseModel):
     keyword: str
+    keyword_type: Literal["GENERAL", "OWN", "COMPETITOR"] = "GENERAL"
     is_active: bool = True
 
 class KeywordCreate(KeywordBase):
@@ -39,6 +40,7 @@ class KeywordCreate(KeywordBase):
 
 class KeywordUpdate(BaseModel):
     keyword: Optional[str] = None
+    keyword_type: Optional[Literal["GENERAL", "OWN", "COMPETITOR"]] = None
     is_active: Optional[bool] = None
 
 class KeywordResponse(KeywordBase):
