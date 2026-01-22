@@ -70,22 +70,6 @@ def update_keyword_group(group_id: int, group_update: KeywordGroupUpdate, db: Se
         logger.warning("키워드 그룹 수정 실패: 그룹 없음 (group_id=%s)", group_id)
         raise HTTPException(status_code=404, detail="Keyword Group not found")
     
-    if group_update.keyword_type and group_update.keyword_type != db_group.keyword_type:
-        limit = GROUP_KEYWORD_LIMITS[group_update.keyword_type]
-        keyword_count = db.query(Keyword).filter(Keyword.group_id == group_id).count()
-        if keyword_count > limit:
-            logger.warning(
-                "키워드 그룹 수정 실패: 키워드 수 제한 초과 (group_id=%s, type=%s, count=%s)",
-                group_id,
-                group_update.keyword_type,
-                keyword_count
-            )
-            raise HTTPException(
-                status_code=400,
-                detail=f"{group_update.keyword_type} 그룹은 키워드를 최대 {limit}개까지 가질 수 있습니다"
-            )
-        db_group.keyword_type = group_update.keyword_type
-
     if group_update.group_name:
         db_group.group_name = group_update.group_name
     
