@@ -12,6 +12,8 @@ backend/venv/
 # Environment variables
 .env
 backend/.env
+frontend/.env
+frontend/.env.*
 
 # IDE
 .vscode/
@@ -23,3 +25,7 @@ backend/.env
 
 # Docker volumes
 klog_pgdata/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
