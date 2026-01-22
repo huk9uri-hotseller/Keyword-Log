@@ -37,6 +37,10 @@ class KeywordBase(BaseModel):
 class KeywordCreate(KeywordBase):
     pass
 
+class KeywordUpdate(BaseModel):
+    keyword: Optional[str] = None
+    is_active: Optional[bool] = None
+
 class KeywordResponse(KeywordBase):
     id: int
     group_id: int
@@ -54,6 +58,9 @@ class KeywordGroupBase(BaseModel):
 
 class KeywordGroupCreate(KeywordGroupBase):
     user_id: int  # 현재 인증 미구현으로 user_id를 직접 받음
+
+class KeywordGroupUpdate(BaseModel):
+    group_name: Optional[str] = None
 
 class KeywordGroupResponse(KeywordGroupBase):
     id: int
