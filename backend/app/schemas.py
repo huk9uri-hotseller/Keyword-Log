@@ -32,7 +32,6 @@ class UserResponse(UserBase):
 
 class KeywordBase(BaseModel):
     keyword: str
-    keyword_type: Literal["GENERAL", "OWN", "COMPETITOR"] = "GENERAL"
     is_active: bool = True
 
 class KeywordCreate(KeywordBase):
@@ -40,7 +39,6 @@ class KeywordCreate(KeywordBase):
 
 class KeywordUpdate(BaseModel):
     keyword: Optional[str] = None
-    keyword_type: Optional[Literal["GENERAL", "OWN", "COMPETITOR"]] = None
     is_active: Optional[bool] = None
 
 class KeywordResponse(KeywordBase):
@@ -64,7 +62,6 @@ class KeywordGroupCreate(KeywordGroupBase):
 
 class KeywordGroupUpdate(BaseModel):
     group_name: Optional[str] = None
-    keyword_type: Optional[Literal["GENERAL", "OWN", "COMPETITOR"]] = None
 
 class KeywordGroupResponse(KeywordGroupBase):
     id: int
