@@ -68,8 +68,13 @@ CREATE TABLE keyword_groups (
   user_id BIGINT NOT NULL REFERENCES users(id)
     ON DELETE CASCADE,                              -- 소유 사용자 FK(사용자 삭제 시 그룹도 삭제)
   group_name VARCHAR(100) NOT NULL,                 -- 그룹 이름(예: "나이키 vs 아디다스")
+  keyword_type VARCHAR(20) NOT NULL DEFAULT 'GENERAL', -- 그룹 유형(GENERAL/OWN/COMPETITOR)
   created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP  -- 생성 시각
 );
+
+ALTER TABLE keyword_groups
+  ADD CONSTRAINT ck_keyword_groups_type
+  CHECK (keyword_type IN ('GENERAL', 'OWN', 'COMPETITOR'));
 
 CREATE INDEX idx_keyword_groups_user_id
   ON keyword_groups(user_id);                       -- 사용자별 그룹 조회 최적화

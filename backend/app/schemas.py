@@ -57,12 +57,14 @@ class KeywordResponse(KeywordBase):
 
 class KeywordGroupBase(BaseModel):
     group_name: str
+    keyword_type: Literal["GENERAL", "OWN", "COMPETITOR"] = "GENERAL"
 
 class KeywordGroupCreate(KeywordGroupBase):
     user_id: int  # 현재 인증 미구현으로 user_id를 직접 받음
 
 class KeywordGroupUpdate(BaseModel):
     group_name: Optional[str] = None
+    keyword_type: Optional[Literal["GENERAL", "OWN", "COMPETITOR"]] = None
 
 class KeywordGroupResponse(KeywordGroupBase):
     id: int

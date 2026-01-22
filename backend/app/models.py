@@ -69,7 +69,12 @@ class KeywordGroup(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
     group_name = Column(String(100), nullable=False)
+    keyword_type = Column(String(20), nullable=False, server_default=text("'GENERAL'"))
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        CheckConstraint("keyword_type IN ('GENERAL', 'OWN', 'COMPETITOR')", name='ck_keyword_groups_type'),
+    )
 
     # Relationships
     user = relationship("User", back_populates="keyword_groups")
