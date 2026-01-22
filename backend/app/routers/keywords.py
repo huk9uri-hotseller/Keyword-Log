@@ -18,6 +18,11 @@ router = APIRouter(
 
 logger = logging.getLogger(__name__)
 
+GROUP_KEYWORD_LIMITS = {
+    "GENERAL": 6,
+    "OWN": 1,
+    "COMPETITOR": 5,
+}
 # =====================================================================
 # 키워드 그룹 관리
 # =====================================================================
@@ -32,7 +37,8 @@ def create_keyword_group(group: KeywordGroupCreate, db: Session = Depends(get_db
 
     db_group = KeywordGroup(
         user_id=group.user_id,
-        group_name=group.group_name
+        group_name=group.group_name,
+        keyword_type=group.keyword_type
     )
     db.add(db_group)
     db.commit()
@@ -64,6 +70,22 @@ def update_keyword_group(group_id: int, group_update: KeywordGroupUpdate, db: Se
         logger.warning("키워드 그룹 수정 실패: 그룹 없음 (group_id=%s)", group_id)
         raise HTTPException(status_code=404, detail="Keyword Group not found")
     
+    if group_update.keyword_type and group_update.keyword_type != db_group.keyword_type:
+        limit = GROUP_KEYWORD_LIMITS[group_update.keyword_type]
+        keyword_count = db.query(Keyword).filter(Keyword.group_id == group_id).count()
+        if keyword_count > limit:
+            logger.warning(
+                "키워드 그룹 수정 실패: 키워드 수 제한 초과 (group_id=%s, type=%s, count=%s)",
+                group_id,
+                group_update.keyword_type,
+                keyword_count
+            )
+            raise HTTPException(
+                status_code=400,
+                detail=f"{group_update.keyword_type} 그룹은 키워드를 최대 {limit}개까지 가질 수 있습니다"
+            )
+        db_group.keyword_type = group_update.keyword_type
+
     if group_update.group_name:
         db_group.group_name = group_update.group_name
     
@@ -107,6 +129,20 @@ def create_keyword(group_id: int, keyword: KeywordCreate, db: Session = Depends(
             keyword.keyword
         )
         raise HTTPException(status_code=400, detail="Keyword already exists in this group")
+
+    limit = GROUP_KEYWORD_LIMITS[db_group.keyword_type]
+    keyword_count = db.query(Keyword).filter(Keyword.group_id == group_id).count()
+    if keyword_count >= limit:
+        logger.warning(
+            "키워드 생성 실패: 그룹 키워드 수 제한 초과 (group_id=%s, type=%s, count=%s)",
+            group_id,
+            db_group.keyword_type,
+            keyword_count
+        )
+        raise HTTPException(
+            status_code=400,
+            detail=f"{db_group.keyword_type} 그룹은 키워드를 최대 {limit}개까지 등록할 수 있습니다"
+        )
 
     db_keyword = Keyword(
         group_id=group_id,
