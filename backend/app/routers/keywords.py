@@ -1,3 +1,4 @@
+import logging
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List, Optional
@@ -15,6 +16,8 @@ router = APIRouter(
     responses={404: {"description": "Not found"}},
 )
 
+logger = logging.getLogger(__name__)
+
 # =====================================================================
 # 키워드 그룹 관리
 # =====================================================================
@@ -24,6 +27,7 @@ router = APIRouter(
 def create_keyword_group(group: KeywordGroupCreate, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.id == group.user_id).first()
     if not user:
+        logger.warning("키워드 그룹 생성 실패: 사용자 없음 (user_id=%s)", group.user_id)
         raise HTTPException(status_code=404, detail="User not found")
 
     db_group = KeywordGroup(
@@ -48,6 +52,7 @@ def read_keyword_groups(user_id: Optional[int] = None, skip: int = 0, limit: int
 def read_keyword_group(group_id: int, db: Session = Depends(get_db)):
     db_group = db.query(KeywordGroup).filter(KeywordGroup.id == group_id).first()
     if db_group is None:
+        logger.warning("키워드 그룹 조회 실패: 그룹 없음 (group_id=%s)", group_id)
         raise HTTPException(status_code=404, detail="Keyword Group not found")
     return db_group
 
@@ -56,6 +61,7 @@ def read_keyword_group(group_id: int, db: Session = Depends(get_db)):
 def update_keyword_group(group_id: int, group_update: KeywordGroupUpdate, db: Session = Depends(get_db)):
     db_group = db.query(KeywordGroup).filter(KeywordGroup.id == group_id).first()
     if db_group is None:
+        logger.warning("키워드 그룹 수정 실패: 그룹 없음 (group_id=%s)", group_id)
         raise HTTPException(status_code=404, detail="Keyword Group not found")
     
     if group_update.group_name:
@@ -70,6 +76,7 @@ def update_keyword_group(group_id: int, group_update: KeywordGroupUpdate, db: Se
 def delete_keyword_group(group_id: int, db: Session = Depends(get_db)):
     db_group = db.query(KeywordGroup).filter(KeywordGroup.id == group_id).first()
     if db_group is None:
+        logger.warning("키워드 그룹 삭제 실패: 그룹 없음 (group_id=%s)", group_id)
         raise HTTPException(status_code=404, detail="Keyword Group not found")
     
     db.delete(db_group)
@@ -86,6 +93,7 @@ def delete_keyword_group(group_id: int, db: Session = Depends(get_db)):
 def create_keyword(group_id: int, keyword: KeywordCreate, db: Session = Depends(get_db)):
     db_group = db.query(KeywordGroup).filter(KeywordGroup.id == group_id).first()
     if db_group is None:
+        logger.warning("키워드 생성 실패: 그룹 없음 (group_id=%s)", group_id)
         raise HTTPException(status_code=404, detail="Keyword Group not found")
     
     existing_keyword = db.query(Keyword).filter(
@@ -93,6 +101,11 @@ def create_keyword(group_id: int, keyword: KeywordCreate, db: Session = Depends(
         Keyword.keyword == keyword.keyword
     ).first()
     if existing_keyword:
+        logger.warning(
+            "키워드 생성 실패: 중복 키워드 (group_id=%s, keyword=%s)",
+            group_id,
+            keyword.keyword
+        )
         raise HTTPException(status_code=400, detail="Keyword already exists in this group")
 
     db_keyword = Keyword(
@@ -110,6 +123,7 @@ def create_keyword(group_id: int, keyword: KeywordCreate, db: Session = Depends(
 def read_keywords(group_id: int, db: Session = Depends(get_db)):
     db_group = db.query(KeywordGroup).filter(KeywordGroup.id == group_id).first()
     if db_group is None:
+        logger.warning("키워드 목록 조회 실패: 그룹 없음 (group_id=%s)", group_id)
         raise HTTPException(status_code=404, detail="Keyword Group not found")
     return db_group.keywords
 
@@ -123,6 +137,11 @@ def update_keyword(group_id: int, keyword_id: int, keyword_update: KeywordUpdate
     ).first()
     
     if db_keyword is None:
+        logger.warning(
+            "키워드 수정 실패: 그룹 내 키워드 없음 (group_id=%s, keyword_id=%s)",
+            group_id,
+            keyword_id
+        )
         raise HTTPException(status_code=404, detail="Keyword not found in this group")
     
     # 키워드 내용 변경 시 중복 체크
@@ -132,6 +151,11 @@ def update_keyword(group_id: int, keyword_id: int, keyword_update: KeywordUpdate
             Keyword.keyword == keyword_update.keyword
         ).first()
         if existing_keyword:
+            logger.warning(
+                "키워드 수정 실패: 중복 키워드 (group_id=%s, keyword=%s)",
+                group_id,
+                keyword_update.keyword
+            )
             raise HTTPException(status_code=400, detail="Keyword already exists in this group")
         db_keyword.keyword = keyword_update.keyword
 
@@ -152,6 +176,11 @@ def delete_keyword(group_id: int, keyword_id: int, db: Session = Depends(get_db)
     ).first()
     
     if db_keyword is None:
+        logger.warning(
+            "키워드 삭제 실패: 그룹 내 키워드 없음 (group_id=%s, keyword_id=%s)",
+            group_id,
+            keyword_id
+        )
         raise HTTPException(status_code=404, detail="Keyword not found in this group")
     
     db.delete(db_keyword)
