@@ -147,7 +147,7 @@ def create_keyword(group_id: int, keyword: KeywordCreate, db: Session = Depends(
     db_keyword = Keyword(
         group_id=group_id,
         keyword=keyword.keyword,
-        keyword_type=keyword.keyword_type,
+        keyword_type=db_group.keyword_type,
         is_active=keyword.is_active
     )
     db.add(db_keyword)
@@ -195,9 +195,6 @@ def update_keyword(group_id: int, keyword_id: int, keyword_update: KeywordUpdate
             )
             raise HTTPException(status_code=400, detail="Keyword already exists in this group")
         db_keyword.keyword = keyword_update.keyword
-
-    if keyword_update.keyword_type:
-        db_keyword.keyword_type = keyword_update.keyword_type
 
     # 활성 상태 변경
     if keyword_update.is_active is not None:
